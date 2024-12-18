@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+<h:head>
+    <title>JSF Async Export</title>
+    <script type="text/javascript">
+        function startExport() {
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://localhost:8081/export/startExport", true); // Use the full URL of your Spring Boot server
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        document.getElementById("exportStatus").innerHTML = "Export started successfully.";
+                        checkExportCompletion();
+                    } else {
+                        document.getElementById("exportStatus").innerHTML = "Export failed.";
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        function checkExportCompletion() {
+            setTimeout(function() {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", "http://localhost:8081/export/download", true); // Use the full URL of your Spring Boot server
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            window.location.href = "http://localhost:8081/export/download"; // Trigger the download
+                        } else {
+                            checkExportCompletion(); // Retry if the export is not ready yet
+                        }
+                    }
+                };
+                xhr.send();
+            }, 5000); // Check every 5 seconds
+        }
+    </script>
+</h:head>
+<h:body>
+    <h:form>
+        <h:commandButton value="Start Export" onclick="startExport(); return false;" />
+    </h:form>
+    <h:outputText id="exportStatus" value="Waiting for export..." />
+</h:body>
+</html>
